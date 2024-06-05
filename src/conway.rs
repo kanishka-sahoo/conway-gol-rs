@@ -1,26 +1,27 @@
 use std::cmp::{max, min};
 
 // 2 possible states for cell: dead or alive
+#[derive(Debug)]
 pub struct Cell {
-    state: bool,
+    pub state: bool,
 }
 
 // store an encoding of cells for communication purposes
 pub struct UpdatedCell {
-    state: bool,
-    row: usize,
-    col: usize,
+    pub state: bool,
+    pub row: usize,
+    pub col: usize,
 }
 
 // define a grid of cells
 pub struct ConwayGameGrid {
-    grid: Vec<Cell>,
+    pub grid: Vec<Cell>,
 
     // cell index = (row * self.grid_height) + col
-    row: usize,
-    col: usize,
-    grid_width: usize,
-    grid_height: usize,
+    pub row: usize,
+    pub col: usize,
+    pub grid_width: usize,
+    pub grid_height: usize,
 }
 
 // get the vector index from row and col numbers
@@ -57,33 +58,54 @@ impl ConwayGameGrid {
     fn get_alive_neighbours_count(&self) -> u8 {
         let mut neighbours = 0;
 
+        let lcol: usize;
+        let lrow: usize;
+        let grow: usize;
+        let gcol: usize;
+
+        if self.col == 0 {
+            lcol = 0
+        } else {
+            lcol = self.col - 1;
+        }
+
+        if self.row == 0 {
+            lrow = 0
+        } else {
+            lrow = self.row - 1;
+        }
+
+        if self.col >= self.grid_width - 1 {
+            gcol = 0
+        } else {
+            gcol = self.col + 1;
+        }
+
+        if self.row >= self.grid_height - 1 {
+            grow = 0
+        } else {
+            grow = self.row + 1;
+        }
+
         // the top row (row-1, col-1..=col+1)
-        for col in max(self.col - 1, 0)..=min(self.col + 1, self.grid_width) {
-            if self.grid[compute_index(min(self.row - 1, 0), col, self.grid_height)].state {
+        for col in max(lcol, 0)..=min(gcol, self.grid_width - 1) {
+            if self.grid[compute_index(lrow, col, self.grid_height)].state {
                 neighbours += 1;
             }
         }
 
         // the bottom row (row+1, col-1..=col+1)
-        for col in max(self.col - 1, 0)..=min(self.col + 1, self.grid_width) {
-            if self.grid[compute_index(max(self.row + 1, self.grid_height), col, self.grid_height)]
-                .state
-            {
+        for col in max(lcol, 0)..=min(gcol, self.grid_width - 1) {
+            if self.grid[compute_index(grow, col, self.grid_height)].state {
                 neighbours += 1;
             }
         }
 
         // middle row (left and right)
-        if self.grid[compute_index(self.row, max(self.col - 1, 0), self.grid_height)].state {
+        if self.grid[compute_index(self.row, lcol, self.grid_height)].state {
             neighbours += 1
         }
-        if self.grid[compute_index(
-            self.row,
-            min(self.col + 1, self.grid_width),
-            self.grid_height,
-        )]
-        .state
-        {
+        if self.grid[compute_index(self.row, gcol, self.grid_height)].state {
             neighbours += 1
         }
 
@@ -106,7 +128,7 @@ impl ConwayGameGrid {
                 };
                 if self.grid[compute_index(row, col, self.grid_height)].state {
                     // if live cell has more than 3 or less than 2 live neighbours, it dies
-                    if (alive > 3) && (alive < 2) {
+                    if (alive > 3) || (alive < 2) {
                         newcell.state = false;
                         updatedcells.push(newcell);
                     }
@@ -121,5 +143,22 @@ impl ConwayGameGrid {
         }
 
         self.update_cells(updatedcells);
+        self.row = 0;
+        self.col = 0;
+    }
+
+    // debug print to screen
+    pub fn dump(&self) {
+        for row in 0..self.grid_height {
+            for col in 0..self.grid_width {
+                if self.grid[compute_index(row, col, self.grid_height)].state {
+                    print!("[]");
+                } else {
+                    print!("oo");
+                }
+            }
+            print!("\n");
+        }
+        print!("\n");
     }
 }
