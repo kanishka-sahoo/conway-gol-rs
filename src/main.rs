@@ -1,10 +1,7 @@
+use console;
 use std::cmp::{max, min};
 
-const GRID_WIDTH: usize = 50;
-const GRID_HEIGHT: usize = 60;
-
 // 2 possible states for cell: dead or alive
-
 struct Cell {
     state: bool,
 }
@@ -20,20 +17,22 @@ struct UpdatedCell {
 struct ConwayGameGrid {
     grid: Vec<Cell>,
 
-    // cell index = (row * GRID_HEIGHT) + col
+    // cell index = (row * self.grid_height) + col
     row: usize,
     col: usize,
+    grid_width: usize,
+    grid_height: usize,
 }
 
 // get the vector index from row and col numbers
-fn compute_index(row: usize, col: usize) -> usize {
-    (row * GRID_HEIGHT) + col
+fn compute_index(row: usize, col: usize, maxheight: usize) -> usize {
+    (row * maxheight) + col
 }
 
 impl ConwayGameGrid {
-    fn new() -> ConwayGameGrid {
+    fn new(width: usize, height: usize) -> ConwayGameGrid {
         let mut grid = Vec::new();
-        for _ in 0..GRID_WIDTH * GRID_HEIGHT {
+        for _ in 0..width * height {
             let cell = Cell { state: false };
             grid.push(cell);
         }
@@ -42,6 +41,8 @@ impl ConwayGameGrid {
             grid,
             row: 0,
             col: 0,
+            grid_width: width,
+            grid_height: height,
         };
         gamestate
     }
@@ -58,7 +59,7 @@ impl ConwayGameGrid {
     // update grid based on updated cell vector
     fn update_cells(&mut self, cells: Vec<UpdatedCell>) {
         for cell in cells {
-            self.grid[compute_index(cell.row, cell.col)].state = cell.state;
+            self.grid[compute_index(cell.row, cell.col, self.grid_height)].state = cell.state;
         }
     }
 
@@ -67,24 +68,32 @@ impl ConwayGameGrid {
         let mut neighbours = 0;
 
         // the top row (row-1, col-1..=col+1)
-        for col in max(self.col - 1, 0)..=min(self.col + 1, GRID_WIDTH) {
-            if self.grid[compute_index(min(self.row - 1, 0), col)].state {
+        for col in max(self.col - 1, 0)..=min(self.col + 1, self.grid_width) {
+            if self.grid[compute_index(min(self.row - 1, 0), col, self.grid_height)].state {
                 neighbours += 1;
             }
         }
 
         // the bottom row (row+1, col-1..=col+1)
-        for col in max(self.col - 1, 0)..=min(self.col + 1, GRID_WIDTH) {
-            if self.grid[compute_index(max(self.row + 1, GRID_HEIGHT), col)].state {
+        for col in max(self.col - 1, 0)..=min(self.col + 1, self.grid_width) {
+            if self.grid[compute_index(max(self.row + 1, self.grid_height), col, self.grid_height)]
+                .state
+            {
                 neighbours += 1;
             }
         }
 
         // middle row (left and right)
-        if self.grid[compute_index(self.row, max(self.col - 1, 0))].state {
+        if self.grid[compute_index(self.row, max(self.col - 1, 0), self.grid_height)].state {
             neighbours += 1
         }
-        if self.grid[compute_index(self.row, min(self.col + 1, GRID_WIDTH))].state {
+        if self.grid[compute_index(
+            self.row,
+            min(self.col + 1, self.grid_width),
+            self.grid_height,
+        )]
+        .state
+        {
             neighbours += 1
         }
 
@@ -95,8 +104,8 @@ impl ConwayGameGrid {
     fn iterate(&mut self) {
         let mut updatedcells = Vec::new();
 
-        for row in 0..GRID_HEIGHT {
-            for col in 0..GRID_WIDTH {
+        for row in 0..self.grid_height {
+            for col in 0..self.grid_width {
                 self.row = row;
                 self.col = col;
                 let alive = self.get_alive_neighbours_count();
@@ -105,7 +114,7 @@ impl ConwayGameGrid {
                     row,
                     col,
                 };
-                if self.grid[compute_index(row, col)].state {
+                if self.grid[compute_index(row, col, self.grid_height)].state {
                     // if live cell has more than 3 or less than 2 live neighbours, it dies
                     if (alive > 3) && (alive < 2) {
                         newcell.state = false;
@@ -127,6 +136,6 @@ impl ConwayGameGrid {
 
 fn main() {
     println!("Hello, world!");
-    let mut maingrid = ConwayGameGrid::new();
+    let mut maingrid = ConwayGameGrid::new(50, 40);
     maingrid.iterate();
 }
