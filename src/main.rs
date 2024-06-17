@@ -4,52 +4,13 @@ use crate::conway::*;
 fn main() {
     let mut maingrid = ConwayGameGrid::new(10, 10);
     let mut things: Vec<UpdatedCell> = Vec::new();
-    things.push(UpdatedCell {
-        state: true,
-        row: 1,
-        col: 3,
-    });
-    things.push(UpdatedCell {
-        state: true,
-        row: 2,
-        col: 1,
-    });
-    things.push(UpdatedCell {
-        state: true,
-        row: 2,
-        col: 3,
-    });
-    things.push(UpdatedCell {
-        state: true,
-        row: 3,
-        col: 2,
-    });
-    things.push(UpdatedCell {
-        state: true,
-        row: 3,
-        col: 3,
-    });
+    things.push(UpdatedCell::new(2, 3, true));
+    things.push(UpdatedCell::new(2, 4, true));
+    things.push(UpdatedCell::new(2, 5, true));
     maingrid.update_cells(things);
-
-    maingrid.iterate();
-    maingrid.iterate();
-    maingrid.iterate();
-    maingrid.iterate();
-
-    maingrid.iterate();
-    maingrid.iterate();
-    maingrid.iterate();
-    maingrid.iterate();
-
-    maingrid.iterate();
-    maingrid.iterate();
-    maingrid.iterate();
-    maingrid.iterate();
-
-    maingrid.iterate();
-    maingrid.iterate();
-    maingrid.iterate();
-    maingrid.iterate();
-
     maingrid.dump();
+    for _ in 0..10 {
+        maingrid.iterate();
+        maingrid.dump();
+    }
 }

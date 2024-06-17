@@ -1,30 +1,36 @@
 use std::cmp::{max, min};
 
-// 2 possible states for cell: dead or alive
+/// 2 possible states for cell: dead or alive
 #[derive(Debug)]
 pub struct Cell {
     pub state: bool,
 }
 
-// store an encoding of cells for communication purposes
+/// store an encoding of cells for communication purposes
 pub struct UpdatedCell {
     pub state: bool,
     pub row: usize,
     pub col: usize,
 }
 
-// define a grid of cells
-pub struct ConwayGameGrid {
-    pub grid: Vec<Cell>,
-
-    // cell index = (row * self.grid_height) + col
-    pub row: usize,
-    pub col: usize,
-    pub grid_width: usize,
-    pub grid_height: usize,
+impl UpdatedCell {
+    pub fn new(row: usize, col: usize, state: bool) -> UpdatedCell {
+        UpdatedCell { state, row, col }
+    }
 }
 
-// get the vector index from row and col numbers
+/// define a grid of cells
+pub struct ConwayGameGrid {
+    grid: Vec<Cell>,
+
+    /// cell index = (row * self.grid_height) + col
+    row: usize,
+    col: usize,
+    grid_width: usize,
+    grid_height: usize,
+}
+
+/// get the vector index from row and col numbers
 fn compute_index(row: usize, col: usize, maxheight: usize) -> usize {
     (row * maxheight) + col
 }
@@ -47,14 +53,14 @@ impl ConwayGameGrid {
         gamestate
     }
 
-    // update grid based on updated cell vector
+    /// update grid based on updated cell vector
     pub fn update_cells(&mut self, cells: Vec<UpdatedCell>) {
         for cell in cells {
             self.grid[compute_index(cell.row, cell.col, self.grid_height)].state = cell.state;
         }
     }
 
-    // get number of alive neighbours of current cell
+    /// get number of alive neighbours of current cell
     fn get_alive_neighbours_count(&self) -> u8 {
         let mut neighbours = 0;
 
@@ -112,7 +118,7 @@ impl ConwayGameGrid {
         neighbours
     }
 
-    // run for all the cells
+    /// run for all the cells
     pub fn iterate(&mut self) {
         let mut updatedcells = Vec::new();
 
@@ -147,7 +153,7 @@ impl ConwayGameGrid {
         self.col = 0;
     }
 
-    // debug print to screen
+    /// debug print to screen
     pub fn dump(&self) {
         for row in 0..self.grid_height {
             for col in 0..self.grid_width {
