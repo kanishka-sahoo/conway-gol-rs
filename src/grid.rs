@@ -1,102 +1,152 @@
 use crate::cell::{Cell, UpdatedCell};
 use std::cmp::{max, min};
 
+/// define a grid of cells
 pub struct ConwayGameGrid {
-    grid: Vec<Cell>,
+    pub grid: Vec<Cell>,
+
+    /// cell index = (row * self.grid_height) + col
     grid_width: usize,
     grid_height: usize,
+    row: usize,
+    col: usize,
+}
+
+/// get the vector index from row and col numbers
+fn compute_index(row: usize, col: usize, maxheight: usize) -> usize {
+    (row * maxheight) + col
 }
 
 impl ConwayGameGrid {
-    pub fn new(width: usize, height: usize) -> Self {
-        let grid = vec![Cell { state: false }; width * height];
-        Self {
+    pub fn new(width: usize, height: usize) -> ConwayGameGrid {
+        let mut grid = Vec::new();
+        for _ in 0..width * height {
+            let cell = Cell { state: false };
+            grid.push(cell);
+        }
+
+        let gamestate = ConwayGameGrid {
             grid,
             grid_width: width,
             grid_height: height,
+            row: 0,
+            col: 0,
+        };
+        gamestate
+    }
+
+    /// update grid based on updated cell vector
+    pub fn update_cells(&mut self, cells: Vec<UpdatedCell>) {
+        for cell in cells {
+            self.grid[compute_index(cell.row, cell.col, self.grid_height)].state = cell.state;
         }
     }
 
-    pub fn update_cells(&mut self, cells: &[UpdatedCell]) {
-        for &cell in cells {
-            let index = self.compute_index(cell.row, cell.col);
-            self.grid[index].state = cell.state;
-        }
-    }
-
-    fn compute_index(&self, row: usize, col: usize) -> usize {
-        row * self.grid_width + col
-    }
-
-    fn get_alive_neighbours_count(&self, row: usize, col: usize) -> u8 {
+    /// get number of alive neighbours of current cell
+    pub fn get_alive_neighbours_count(&self) -> u8 {
         let mut neighbours = 0;
-        for i in max(1, row + 1) - 1..=min(row + 1, self.grid_height - 1) {
-            for j in max(1, col + 1) - 1..=min(col + 1, self.grid_width - 1) {
-                if (i != row || j != col) && self.grid[self.compute_index(i, j)].state {
-                    neighbours += 1;
-                }
+
+        let lcol: usize;
+        let lrow: usize;
+        let grow: usize;
+        let gcol: usize;
+
+        if self.col == 0 {
+            lcol = 0
+        } else {
+            lcol = self.col - 1;
+        }
+
+        if self.row == 0 {
+            lrow = 0
+        } else {
+            lrow = self.row - 1;
+        }
+
+        if self.col >= self.grid_width - 1 {
+            gcol = 0
+        } else {
+            gcol = self.col + 1;
+        }
+
+        if self.row >= self.grid_height - 1 {
+            grow = 0
+        } else {
+            grow = self.row + 1;
+        }
+
+        // the top row (row-1, col-1..=col+1)
+        for col in max(lcol, 0)..=min(gcol, self.grid_width - 1) {
+            if self.grid[compute_index(lrow, col, self.grid_height)].state {
+                neighbours += 1;
             }
         }
+
+        // the bottom row (row+1, col-1..=col+1)
+        for col in max(lcol, 0)..=min(gcol, self.grid_width - 1) {
+            if self.grid[compute_index(grow, col, self.grid_height)].state {
+                neighbours += 1;
+            }
+        }
+
+        // middle row (left and right)
+        if self.grid[compute_index(self.row, lcol, self.grid_height)].state {
+            neighbours += 1
+        }
+        if self.grid[compute_index(self.row, gcol, self.grid_height)].state {
+            neighbours += 1
+        }
+
         neighbours
     }
 
+    /// run for all the cells
     pub fn iterate(&mut self) {
-        let mut updated_cells = Vec::new();
+        let mut updatedcells = Vec::new();
 
         for row in 0..self.grid_height {
             for col in 0..self.grid_width {
-                let alive = self.get_alive_neighbours_count(row, col);
-                let current_state = self.grid[self.compute_index(row, col)].state;
-                let new_state = match (current_state, alive) {
-                    (true, 2) | (true, 3) => true,
-                    (false, 3) => true,
-                    _ => false,
+                self.row = row;
+                self.col = col;
+                let alive = self.get_alive_neighbours_count();
+                let mut newcell = UpdatedCell {
+                    state: false,
+                    row,
+                    col,
                 };
-
-                if new_state != current_state {
-                    updated_cells.push(UpdatedCell::new(row, col, new_state));
+                if self.grid[compute_index(row, col, self.grid_height)].state {
+                    // if live cell has more than 3 or less than 2 live neighbours, it dies
+                    if (alive > 3) || (alive < 2) {
+                        newcell.state = false;
+                        updatedcells.push(newcell);
+                    }
+                } else {
+                    // if dead cell has 3 alive neighbours it comes alive
+                    if alive == 3 {
+                        newcell.state = true;
+                        updatedcells.push(newcell);
+                    }
                 }
             }
         }
 
-        self.update_cells(&updated_cells);
+        self.update_cells(updatedcells);
+        self.row = 0;
+        self.col = 0;
     }
 
-    pub fn dump(&self) -> String {
-        let mut output = String::new();
+    /// debug print to screen
+    pub fn dump(&self) {
         for row in 0..self.grid_height {
             for col in 0..self.grid_width {
-                output.push_str(if self.grid[self.compute_index(row, col)].state {
-                    "[]"
+                if self.grid[compute_index(row, col, self.grid_height)].state {
+                    print!("[]");
                 } else {
-                    "oo"
-                });
+                    print!("oo");
+                }
             }
-            output.push('\n');
+            print!("\n");
         }
-        output.push('\n');
-        output
-    }
-
-    pub fn get_cell_state(&self, row: usize, col: usize) -> Option<bool> {
-        if row < self.grid_height && col < self.grid_width {
-            Some(self.grid[self.compute_index(row, col)].state)
-        } else {
-            None
-        }
-    }
-
-    pub fn set_cell_state(&mut self, row: usize, col: usize, state: bool) -> bool {
-        if row < self.grid_height && col < self.grid_width {
-            let index = self.compute_index(row, col);
-            self.grid[index].state = state;
-            true
-        } else {
-            false
-        }
-    }
-
-    pub fn dimensions(&self) -> (usize, usize) {
-        (self.grid_width, self.grid_height)
+        print!("\n");
     }
 }
