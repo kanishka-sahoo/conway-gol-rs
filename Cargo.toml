@@ -1,7 +1,10 @@
 [package]
 name = "conway-gol-rs"
 version = "0.1.0"
+authors = ["Kanishka Sahoo kanishka.sahoo@gmail.com"]
 edition = "2021"
+description = "A Conway's Game of Life implementation in Rust"
+license = "MIT"
+repository = "https://github.com/kanishka-sahoo/conway-gol-rs"
 
 [dependencies]
-console = "0.15.8"
