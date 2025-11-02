@@ -9,14 +9,6 @@ A Rust library implementation of Conway's Game of Life.
 - Get and set individual cell states
 - Visualize the game state as a string
 
-## Installation
-
-Add this to your `Cargo.toml`:
-
-```toml
-[dependencies]
-conway_game_of_life = "0.1.3"
-```
 
 ## Usage
 
