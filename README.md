@@ -22,16 +22,22 @@ fn main() {
     // Create a 10x10 grid
     let mut game = ConwayGameGrid::new(10, 10);
 
-    // Set some initial live cells
-    let cells: Vec<Cell> = vec![Cell::new(5, 5, true), Cell::new(5, 6, true), Cell::new(6, 5, true), Cell::new(6, 6, true)];
+    // Set some initial live cells using UpdatedCell::new
+    let cells: Vec<Cell> = vec![
+        Cell::new(5, 5, true),
+        Cell::new(5, 6, true),
+        Cell::new(6, 5, true),
+        Cell::new(6, 6, true),
+    ];
 
+    // Apply the batched updates
     game.update_cells(cells);
 
     // Run a single iteration
     game.iterate();
 
-    // Print the current state
-    println!("{:?}", game.dump());
+    // Dump the grid to stdout (debug print)
+    game.dump();
 }
 ```
 
@@ -58,8 +64,13 @@ The main struct representing the game grid.
 
 - `new(width: usize, height: usize) -> Self`: Create a new game grid.
 - `iterate(&mut self)`: Advance the game state by one generation.
-- `update_cells(&mut self, cells: &[UpdatedCell])`: Update multiple cells at once.
-- `dump(&self) -> String`: Get a string representation of the current grid state.
+- `update_cells(&mut self, cells: Vec<UpdatedCell>)`: Update multiple cells at once (apply batched updates).
+    Use `UpdatedCell::new(row, col, state)` to construct updates.
+- `get(&self, row, col) -> Option<bool>`: Query a cell's state safely.
+- `set(&mut self, row, col, state) -> bool`: Set a cell's state (returns false if out of bounds).
+- `alive_neighbours_at(&self, row, col) -> u8`: Returns the number of alive neighbours at a position (toroidal wrapping).
+- `get_alive_neighbours_count(&self) -> u8`: Query neighbours for the grid's internal cursor (keeps compatibility with earlier code).
+- `dump(&self)`: Prints a simple textual representation of the grid to stdout (debug helper).
 
 ### `UpdatedCell`
 

@@ -81,10 +81,11 @@ impl ConwayGameGrid {
         }
     }
 
-    /// get number of alive neighbours of the current cell (uses `self.row` and `self.col`).
+    /// Get number of alive neighbours of the current cell (uses `self.row` and `self.col`).
     ///
-    /// Note: this keeps the original public signature but the implementation is
-    /// corrected and simplified. It clamps neighbours to the grid bounds (no wrapping).
+    /// This method delegates to `alive_neighbours_at` and preserves the original
+    /// signature for compatibility. Neighbor counting uses toroidal wrapping
+    /// (edges wrap around).
     pub fn get_alive_neighbours_count(&self) -> u8 {
         self.alive_neighbours_at(self.row, self.col)
     }
