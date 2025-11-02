@@ -1,6 +1,6 @@
 [package]
 name = "conway-gol-rs"
-version = "0.1.1"
+version = "0.1.3"
 authors = ["Kanishka Sahoo kanishka.sahoo@gmail.com"]
 edition = "2021"
 description = "A Conway's Game of Life implementation in Rust"
