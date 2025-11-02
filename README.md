@@ -35,6 +35,19 @@ fn main() {
 }
 ```
 
+### Helpers: get/set and grid size
+
+This crate provides small, safe helpers on `ConwayGameGrid` to access and
+modify individual cells without reaching into the `grid` vector directly:
+
+- `get(&self, row, col) -> Option<bool>`: returns the cell state or `None` when out of bounds.
+- `set(&mut self, row, col, state) -> bool`: sets a cell and returns `true` on success.
+- `width()` / `height()` accessors return the grid dimensions.
+
+Note on neighbour behavior: the library uses toroidal wrapping for neighbour
+calculations (edges wrap around like a torus). Use `alive_neighbours_at(row, col)` to
+query neighbour counts at arbitrary positions.
+
 ## API
 
 ### `ConwayGameGrid`
